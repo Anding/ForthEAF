@@ -23,7 +23,7 @@ Extern: int "C" EAFSetBacklash( int FocuserID, int iStep );
 Extern: int "C" EAFSetBeep( int FocuserID, int beeping );
 Extern: int "C" EAFSetID( int FocuserID, long EAFID );
 Extern: int "C" EAFSetMaxStep( int FocuserID, int iStep );
-Extern: int "C" EAFSetReverse( int ID, int reverse );
+Extern: int "C" EAFSetReverse( int ID, int * reverse );
 Extern: int "C" EAFStepRange( int FocuserID, int * iStep );
 Extern: int "C" EAFStop( int FocuserID );
 
