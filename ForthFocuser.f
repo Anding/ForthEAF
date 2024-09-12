@@ -27,22 +27,22 @@
 : focuser_SN   ( -- caddr u)
 \ return the S/N of the focuser as a hex string
 	base @ >R hex
-	ESFSN 2@ <# #s #> 	\ VFX has no word (ud.)
+	EAFSN 2@ <# #s #> 	\ VFX has no word (ud.)
 	R> base !
 ;
 
 : focuser_moving { | moving handcontrol -- flag } 
-	focuser.ID EAF addr moving addr handcontrol 
+	focuser.ID addr moving addr handcontrol 
 	EAFIsMoving EAF.?abort
 	moving	
 ;
 
-: focuser-wheel ( --)
+: wait-focuser ( --)
 \ synchronous hold until the wheel stops moving
 	begin
 		focuser_moving
 	while
-		." . " 100 ms
+		." . " 250 ms
 	repeat
 ;
 
@@ -71,7 +71,7 @@
 	steps
 ;
 
-: ->focuser_maxsteps{ steps -- steps } \ VFX locals for pass-by-reference 
+: ->focuser_maxsteps { steps -- steps } \ VFX locals for pass-by-reference 
 	focuser.ID swap EAFSetMaxStep EAF.?abort
 ;
 
@@ -136,10 +136,10 @@
 		\ loop over each connected focuser
 		CR ." ID" tab ." Focuser" tab tab ." S/N" tab tab ." Handle" CR
 		0 do
-			i EAFFocuserID ( index buffer) EAFGetID  EAF.?abort
-			EAFFocuserID @										( ID)
+			i EAFID ( index buffer) EAFGetID  EAF.?abort
+			EAFID @												( ID)
 			dup . -> focuser.ID
-			focuser.ID EFWOpen EAF.?abort
+			focuser.ID EAFOpen EAF.?abort
 			focuser.ID EAFFocuserInfo ( ID buffer) EAFGetProperty EAF.?abort
 			focuser_name tab type focuser_SN tab type		
 			focuser.ID EAFClose EAF.?abort		
@@ -159,6 +159,6 @@
 \ WheelID Name SerialNo Slots
 	CR ." ID" 		focuser.ID tab tab .	
 	CR ." Name" 	focuser_SN tab tab type
-	CR ." Slots"	wheel_slots tab . CR
+	CR ." Reverse?"	focuser_reverse tab . CR
 	CR CR
 ;
