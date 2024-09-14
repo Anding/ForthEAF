@@ -1,5 +1,6 @@
 \ test for EAF_SDK.f
 
+include C:\MPE\VfxForth\Lib\Win32\Genio\SocketIo.fth
 include "%idir%\..\ForthBase\ForthBase.f"
 include "%idir%\EAF_SDK.f"
 include "%idir%\EAF_SDK_extend.f"
