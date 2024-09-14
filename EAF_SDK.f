@@ -11,7 +11,7 @@ Extern: int "C" EAFGetMaxStep( int FocuserID, int * iStep );
 Extern: int "C" EAFGetNum( );
 Extern: int "C" EAFGetPosition( int FocuserID, int * iStep );
 Extern: int "C" EAFGetProperty( int FocuserID, int * EAF_FOCUSER_INFO );
-Extern: int "C" EAFGetReverse( int FocuserID, int reverse );
+Extern: int "C" EAFGetReverse( int FocuserID, int * reverse );
 Extern: char * "C" EAFGetSDKVersion( );
 Extern: int "C" EAFGetSerialNumber( int FocuserID, long * EAFSN );
 Extern: int "C" EAFGetTemp( int FocuserID, float * temp );
@@ -50,13 +50,13 @@ BEGIN-STRUCTURE EAF_FOCUSER_INFO
  4 +FIELD EAF_MAX_STEP
 END-STRUCTURE
 
-BEGIN-STRUCTURE EAF_ID				\ 8 bytes
+BEGIN-STRUCTURE EAF_ID		\ 8 bytes
   8 +FIELD EAF_ID_ID
 END-STRUCTURE
 
 \ pass by reference to ASI library functions
+variable EAFFocuserID
 EAF_FOCUSER_INFO	BUFFER: EAFFocuserInfo
-EAF_ID				BUFFER: EAFID
 EAF_ID				BUFFER: EAFSN
 
 \ do-or-die error handler

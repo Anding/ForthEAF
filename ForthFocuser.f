@@ -32,10 +32,10 @@
 	R> base !
 ;
 
-: focuser_moving { | moving handcontrol -- flag } 
-	focuser.ID addr moving addr handcontrol 
+: focuser_moving { | moving handcontrol } ( -- flag) 
+	focuser.ID ADDR moving ADDR handcontrol 
 	EAFIsMoving EAF.?abort
-	moving	
+	ADDR moving c@	\ API appears to use the byte boolean type	
 ;
 
 : wait-focuser ( --)
@@ -48,17 +48,15 @@
 ;
 
 : focuser_position { | pos } ( -- pos) \ VFX locals for pass-by-reference 
-	wait-focuser
 	focuser.ID ADDR pos EAFGetPosition EAF.?abort
 	pos
 ;
 
 : ->focuser_position ( pos --)
-	wait-focuser
 	focuser.ID swap EAFMove EAF.?abort
 ; 
 
-: focuser_backlash { | steps -- steps } \ VFX locals for pass-by-reference 
+: focuser_backlash { | steps } ( -- steps ) \ VFX locals for pass-by-reference 
 	focuser.ID ADDR steps EAFGetBacklash EAF.?abort
 	steps
 ;
@@ -67,25 +65,25 @@
 	focuser.ID swap EAFSetBacklash EAF.?abort
 ; 
 
-: focuser_maxsteps { | steps -- steps } \ VFX locals for pass-by-reference 
+: focuser_maxsteps { | steps } ( -- steps) \ VFX locals for pass-by-reference 
 	focuser.ID ADDR steps EAFGetMaxStep EAF.?abort
 	steps
 ;
 
-: ->focuser_maxsteps { steps -- steps } \ VFX locals for pass-by-reference 
+: ->focuser_maxsteps ( steps -- ) \ VFX locals for pass-by-reference 
 	focuser.ID swap EAFSetMaxStep EAF.?abort
 ;
 
-: focuser_reverse { | flag -- flag } \ VFX locals for pass-by-reference 
+: focuser_reverse { | flag } ( -- flag) \ VFX locals for pass-by-reference 
 	focuser.ID ADDR flag EAFGetReverse EAF.?abort
-	flag
+	ADDR flag c@	\ API appears to use the byte boolean type
 ;
 
 : ->focuser_reverse ( flag --)
 	focuser.ID swap EAFSetReverse EAF.?abort
 ;
 
-: focuser_temp { | temp -- temp } \ VFX locals for pass-by-reference 
+: focuser_temp { | temp } ( -- temp) \ VFX locals for pass-by-reference 
 	focuser.ID ADDR temp EAFGetTemp EAF.?abort
 	ADDR temp sf@ fr>s
 ;
@@ -94,18 +92,18 @@
 	focuser.ID EAFStop
 ;
 
-: focuser_beeping { | flag -- flag } \ VFX locals for pass-by-reference 
+: focuser_beeping { | flag } ( -- pos) \ VFX locals for pass-by-reference 
 	focuser.ID ADDR flag EAFGetBeep EAF.?abort
-	flag
+	ADDR flag c@	\ API appears to use the byte boolean type
 ;
 
 : ->focuser_beeping ( flag --)
 	focuser.ID swap EAFSetBeep EAF.?abort
 ;
 
-: focuser_steprange { | flag -- flag } \ VFX locals for pass-by-reference 
+: focuser_steprange { | flag } ( -- steps) \ VFX locals for pass-by-reference 
 	focuser.ID ADDR flag EAFStepRange EAF.?abort
-	flag
+	ADDR flag c@	\ API appears to use the byte boolean type
 ;
 
 : add-focuser ( FocuserID --)
@@ -118,9 +116,9 @@
 
 : use-focuser ( FocuserID --)
 \ choose the focuser to be selected for operations - must be added first
-	dup -> focuser.ID
-	dup EAFFocuserInfo ( ID buffer) EAFGetProperty EAF.?abort
-	dup EAFSN EAFGetSerialNumber EAF.?ABORT 
+	-> focuser.ID
+	focuser.ID EAFFocuserInfo ( ID buffer) EAFGetProperty EAF.?abort
+	focuser.ID EAFSN EAFGetSerialNumber EAF.?ABORT 
 ;
 
 : remove-focuser ( FocuserID --)
@@ -135,18 +133,18 @@
 	?dup
 	IF
 		\ loop over each connected focuser
-		CR ." ID" tab ." Focuser" tab tab ." S/N" tab tab ." Handle" CR
+		CR ." ID" tab ." Handle" tab  ." Focuser" CR
 		0 do
-			i EAFID ( index buffer) EAFGetID  EAF.?abort
-			EAFID @												( ID)
-			dup . -> focuser.ID
+			i EAFFocuserID ( index buffer) EAFGetID  EAF.?abort
+			EAFFocuserID @										( ID)
+			dup -> focuser.ID .
 			focuser.ID EAFOpen EAF.?abort
 			focuser.ID EAFFocuserInfo ( ID buffer) EAFGetProperty EAF.?abort
-			focuser_name tab type focuser_SN tab type		
+			focuser.ID EAFSN EAFGetSerialNumber EAF.?ABORT 			
+			focuser.ID EAF.make-handle	2dup tab type 	( ID c-addr u)		
+			($constant)											( --)			
+			focuser_name tab type CR
 			focuser.ID EAFClose EAF.?abort		
-			focuser.ID EAF.make-handle						( ID c-addr u)
-			2dup tab type CR									( ID c-addr u)
-			($constant)											( --)
 		loop
 	ELSE
 		CR ." No connected focusers" CR
@@ -159,7 +157,9 @@
 \ report the current focser to the user
 \ WheelID Name SerialNo Slots
 	CR ." ID" 		focuser.ID tab tab .	
-	CR ." Name" 	focuser_SN tab tab type
-	CR ." Reverse?"	focuser_reverse tab . CR
+	CR ." Name" 	focuser_name tab tab type
+	CR ." S/N"		focuser_SN tab tab type
+	CR ." Reverse"	focuser_reverse tab . 
+	CR ." Position" focuser_position tab .
 	CR CR
 ;
