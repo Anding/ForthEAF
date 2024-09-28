@@ -21,6 +21,7 @@
 : add-focuserFITS ( map --)
 \ add key value pairs for FITS wheel parameters
 	>R
+	s"  " 					R@ =>" #FOCUSER"		\ a header to indicate the source of these FITS values
 	focuser_position (.) R@ =>" FOCUSPOS"
 	focuser_temp (.)		R@ =>" FOCUSTEMP"
 	s" unknown"				R@ =>" FOCUSSZ"
