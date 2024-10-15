@@ -1,7 +1,9 @@
 \ test for ForthFocuser.f
 
-include C:\MPE\VfxForth\Lib\Win32\Genio\SocketIo.fth
-include "%idir%\..\ForthBase\ForthBase.f"
+include "%idir%\..\ForthBase\libraries\libraries.f"
+NEED forthbase
+NEED network
+
 include "%idir%\EAF_SDK.f"
 include "%idir%\EAF_SDK_extend.f"
 include "%idir%\ForthFocuser.f"

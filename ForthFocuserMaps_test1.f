@@ -1,15 +1,15 @@
-\ test for ForthAstroCameraFITS.f
+\ test for ForthFocuserMaps.f
 
-include C:\MPE\VfxForth\Lib\Win32\Genio\SocketIo.fth
-include "%idir%\..\ForthBase\ForthBase.f"
+include "%idir%\..\ForthBase\libraries\libraries.f"
+NEED forthbase
+NEED network
+NEED serial
+NEED ForthKMTronic
+NEED forth-map
+
 include "%idir%\EAF_SDK.f"
 include "%idir%\EAF_SDK_extend.f"
 include "%idir%\ForthFocuser.f"
-include "%idir%\..\ForthBase\serial\VFX32serial.f"
-include "%idir%\..\ForthKMTronic\KMTronic_Bidmead.f"
-include "%idir%\..\ForthKMTronic\KMTronic.f"
-include "%idir%\..\forth-map\map.fs"
-include "%idir%\..\forth-map\map-tools.fs"
 include "%idir%\ForthFocuserMaps.f"
 
 -1 constant power-is-relay-switched
@@ -18,7 +18,7 @@ CR
 power-is-relay-switched [IF] 
 \ Switch on the camera relay
 
-	COM_KMT add-relays
+	add-relays
 	1 relay-on
 	3000 ms
 	." Relay power on" CR

@@ -1,11 +1,6 @@
 \ Add FITS and XISF keywords to a map
 \ 	ASI version
 
-\ requires forthbase.f
-\ requires EAF_SDK.f
-\ requires EAF_SDK_extend.f
-\ requires maps.fs
-\ requires map-tools.fs
 
 \ FITS keywords supported by MaxImDL
 \ ==================================

@@ -1,5 +1,8 @@
 \ test for EAF_SDK.f
 
+include "%idir%\..\ForthBase\libraries\libraries.f"
+NEED network
+
 include "%idir%\EAF_SDK.f"
 include "%idir%\EAF_SDK_extend.f"
 CR	
