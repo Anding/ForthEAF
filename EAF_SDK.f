@@ -1,4 +1,5 @@
 \ Forth words directly corresponding to the EAF SDK
+need ForthBase
                                             
 LIBRARY: EAF_focuser.dll  
 	

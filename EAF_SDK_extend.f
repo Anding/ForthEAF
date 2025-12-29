@@ -18,7 +18,7 @@
 \ prepare a handle for the focuser based on name and serial number
 \ assumes EFWGetProperty and EFWGetSerialNumber have been called
 	base @ >R hex	\ s/n in hexadecimal
-	EAFSN w@(n) 0 
+	EAFSN w@ ( n) 0 
 	<# # # # #  	\ first 4 digits only 
 	'_' HOLD			\ separator
 	EAFFocuserInfo EAF_FOCUSER_NAME zcount HOLDS

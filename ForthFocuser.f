@@ -27,7 +27,7 @@
 : focuser_SN   ( -- caddr u)
 \ return the S/N of the focuser as a hex string
 	base @ >R hex
-	EAFSN dup @(n) swap 4 + @(n) swap		\ S/N is stored in big-endian format
+	EAFSN dup @ ( n) swap 4 + @ ( n) swap		\ S/N is stored in big-endian format
 	<# # # # # # # # # # # # # # # # # #> 	\ VFX has no word (ud.)
 	R> base !
 ;
