@@ -43,7 +43,7 @@
 	begin
 		focuser_moving
 	while
-		." . " 250 ms
+		100 ms
 	repeat
 ;
 
@@ -103,7 +103,7 @@
 
 : focuser_steprange { | flag } ( -- steps) \ VFX locals for pass-by-reference 
 	focuser.ID ADDR flag EAFStepRange EAF.?abort
-	ADDR flag c@	\ API appears to use the byte boolean type
+	ADDR flag @	
 ;
 
 : add-focuser ( FocuserID --)
@@ -133,7 +133,7 @@
 	?dup
 	IF
 		\ loop over each connected focuser
-		CR ." ID" tab ." Handle" tab  ." Focuser" CR
+		CR ." ID" tab ." Handle" tab tab  ." Focuser" CR
 		0 do
 			i EAFFocuserID ( index buffer) EAFGetID  EAF.?abort
 			EAFFocuserID @										( ID)
@@ -153,13 +153,10 @@
 
 \ convenience functions
 
-: what-focuser? ( --)
-\ report the current focser to the user
-\ WheelID Name SerialNo Slots
-	CR ." ID" 		focuser.ID tab tab .	
-	CR ." Name" 	focuser_name tab tab type
-	CR ." S/N"		focuser_SN tab tab type
-	CR ." Reverse"	focuser_reverse tab . 
-	CR ." Position" focuser_position tab .
-	CR CR
+: check-focuser ( --)
+\ connect and report the current focuser to the user
+	focuser.ID EAFFocuserInfo ( ID buffer) EAFGetProperty EAF.?abort	
+	CR 
+	." Focuser ID = " focuser.ID . 	
+	."  ; Name = " focuser_name type
 ;

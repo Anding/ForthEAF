@@ -13,13 +13,15 @@
 \ FOCUSER	- name of the filter wheel
 \ FOCUSERSN - wheel serial number
 
+s" unknown" $value focuser.stepsize		\ micrometers per step
+
 : add-focuserFITS ( map --)
 \ add key value pairs for FITS wheel parameters
 	>R
 	s"  " 					R@ =>" #FOCUSER"		\ a header to indicate the source of these FITS values
 	focuser_position (.) R@ =>" FOCUSPOS"
-	focuser_temp (.)		R@ =>" FOCUSTEMP"
-	s" unknown"				R@ =>" FOCUSSZ"
+\ focuser_temp (.)		R@ =>" FOCUSTEMP"
+	focuser.stepsize	R@ =>" FOCUSSZ"
 	focuser_name			R@ =>" FOCUSER"
 	focuser_SN				R@ =>" FOCUSERSN"
 	R> drop
