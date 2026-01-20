@@ -151,7 +151,7 @@
 	THEN
 ;
 
-\ convenience functions
+\ user lexicon
 
 : check-focuser ( --)
 \ connect and report the current focuser to the user
@@ -160,3 +160,20 @@
 	." Focuser ID = " focuser.ID . 	
 	."  ; Name = " focuser_name type
 ;
+
+: focus-at ( pos --)
+	wait-focuser
+	->focuser_position 
+	wait-focuser
+;
+
+: focus-by ( delta --)
+	wait-focuser
+	focuser_position + 
+	->focuser_position
+	wait-focuser
+;
+
+: focus? ( -- pos)
+	focuser_position cr . cr
+;	
