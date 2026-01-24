@@ -1,5 +1,6 @@
 \ Forth words directly corresponding to the EAF SDK
 need ForthBase
+need ForthVT100
                                             
 LIBRARY: EAF_focuser.dll  
 	
@@ -28,22 +29,19 @@ Extern: int "C" EAFSetReverse( int ID, int * reverse );
 Extern: int "C" EAFStepRange( int FocuserID, int * iStep );
 Extern: int "C" EAFStop( int FocuserID );
 
-: EAF.Error ( n -- caddr u)
+BEGIN-ENUMS EAF.Error ( n -- caddr u)
 \ return the EFW text error message
-	CASE
-	 0 OF s" SUCCESS" ENDOF
-	 1 OF s" INVALID_INDEX" ENDOF
-	 2 OF s" INVALID_ID" ENDOF
-	 3 OF s" INVALID_VALUE" ENDOF
-	 4 OF s" REMOVED" ENDOF	
-	 5 OF s" MOVING" ENDOF	
-	 6 OF s" ERROR_STATE" ENDOF
-	 7 OF s" GENERAL_ERROR" ENDOF
-	 8 OF s" NOT_SUPPORTED" ENDOF
-	 9 OF s" CLOSED" ENDOF
-	s" OTHER_ERROR" rot 							( caddr u n)  \ ENDCASE consumes the case selector
-	ENDCASE 
-;
+	 +" FOCUSER SUCCESS" 
+	 +" FOCUSER INVALID_INDEX" 
+	 +" FOCUSER INVALID_ID" 
+	 +" FOCUSER INVALID_VALUE" 
+	 +" FOCUSER REMOVED" 	
+	 +" FOCUSER MOVING" 	
+	 +" FOCUSER ERROR_STATE" 
+	 +" FOCUSER GENERAL_ERROR" 
+	 +" FOCUSER NOT_SUPPORTED" 
+	 +" FOCUSER CLOSED" 
+END-ENUMS
 
 BEGIN-STRUCTURE EAF_FOCUSER_INFO
  4 +FIELD EAF_FOCUSER_ID
@@ -62,10 +60,9 @@ EAF_ID				BUFFER: EAFSN
 
 \ do-or-die error handler
 : EAF.?abort ( n --)
-	flushKeys	
 	dup 
 	IF 
-		EAF.Error type CR
+		EAF.Error cr .>E cr
 		abort 
 	ELSE
 		drop	

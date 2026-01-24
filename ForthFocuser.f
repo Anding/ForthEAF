@@ -17,7 +17,9 @@
 
 \ Operational notes
 \ 	values over variables
-\ 	actions to the presently-selected-camera
+\ 	actions to the presently-selected-camera   
+
+s" " $value eaf.str1
 
 : focuser_name ( -- caddr u)
 \ return the name of the focuser
@@ -34,17 +36,19 @@
 
 : focuser_moving { | moving handcontrol } ( -- flag) 
 	focuser.ID ADDR moving ADDR handcontrol 
-	EAFIsMoving EAF.?abort
-	ADDR moving c@	\ API appears to use the byte boolean type	
+	EAFIsMoving case
+	    0 OF ADDR moving c@ ENDOF   \ some focusers return byte boolean type	
+	    5 OF -1 ENDOF               \ some focusers return the ismoving code
+        0 SWAP 
+    ENDCASE
 ;
 
 : wait-focuser ( --)
-\ synchronous hold until the wheel stops moving
+\ synchronous hold until the focuser stops moving
 	begin
-		focuser_moving
-	while
-		100 ms
-	repeat
+	    100 ms                  \ default delay to allow the previous command to start
+		focuser_moving 0=
+	until
 ;
 
 : focuser_position { | pos } ( -- pos) \ VFX locals for pass-by-reference 
@@ -107,23 +111,28 @@
 ;
 
 : add-focuser ( FocuserID --)
-\ make a wheel available for application use
-\ 	connect the wheel and calibrate it
+\ make a focuser available for application use
+\ 	connect the focuser and calibrate it
+    EAFGetNum 0= if s" no connected focusers" cr .>E cr abort then
 	dup EAFOpen EAF.?abort
 	500 ms
-	EAFFocuserInfo ( ID buffer) EAFGetProperty EAF.?abort
+	EAFFocuserInfo ( ID buffer) EAFGetProperty EAF.?abort    
 ;
 
 : use-focuser ( FocuserID --)
 \ choose the focuser to be selected for operations - must be added first
 	-> focuser.ID
 	focuser.ID EAFFocuserInfo ( ID buffer) EAFGetProperty EAF.?abort
-	focuser.ID EAFSN EAFGetSerialNumber EAF.?ABORT 
+	focuser.ID EAFSN EAFGetSerialNumber drop   
+	focuser_name $-> eaf.str1 s"  at position " $+> eaf.str1
+	focuser_position (.) $+> eaf.str1
+	cr eaf.str1 .> cr	
 ;
 
 : remove-focuser ( FocuserID --)
 \ disconnect the focuser, it becomes unavailable to the application
-	EAFClose EAF.?abort
+    wait-focuser
+	EAFClose drop
 ;
 
 : scan-focusers ( -- )
@@ -140,7 +149,7 @@
 			dup -> focuser.ID .
 			focuser.ID EAFOpen EAF.?abort
 			focuser.ID EAFFocuserInfo ( ID buffer) EAFGetProperty EAF.?abort
-			focuser.ID EAFSN EAFGetSerialNumber EAF.?ABORT 			
+			focuser.ID EAFSN EAFGetSerialNumber drop 			
 			focuser.ID EAF.make-handle	2dup tab type 	( ID c-addr u)		
 			($constant)											( --)			
 			focuser_name tab type CR
@@ -163,17 +172,17 @@
 
 : focus-at ( pos --)
 	wait-focuser
-	->focuser_position 
-	wait-focuser
-;
-
-: focus-by ( delta --)
-	wait-focuser
-	focuser_position + 
-	->focuser_position
-	wait-focuser
+	->focuser_position cr
+	begin
+		focuser_moving
+		100 ms
+		focuser_position (.) .>
+	while
+		150 ms
+	repeat cr
 ;
 
 : focus? ( -- pos)
-	focuser_position cr . cr
+    cr focuser_position (.) .> cr
+	cr
 ;	
