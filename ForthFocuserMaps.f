@@ -18,12 +18,12 @@ s" unknown" $value focuser.stepsize		\ micrometers per step
 : add-focuserFITS ( map --)
 \ add key value pairs for FITS wheel parameters
 	>R
-	s"  " 					R@ =>" #FOCUSER"		\ a header to indicate the source of these FITS values
-	focuser_position (.) R@ =>" FOCUSPOS"
-\ focuser_temp (.)		R@ =>" FOCUSTEMP"
-	focuser.stepsize	R@ =>" FOCUSSZ"
+	s"  "                   R@ =>" #FOCUSER"		\ a header to indicate the source of these FITS values
+	focuser_position (.)    R@ =>" FOCUSPOS"
+	focuser.stepsize	    R@ =>" FOCUSSZ"
 	focuser_name			R@ =>" FOCUSER"
-	focuser_SN				R@ =>" FOCUSERSN"
+    focuser_SN				R@ =>" FOCUSN"
+    focuser_temp (.)		R@ =>" FOCUTEMP"
 	R> drop
 ;	
 
