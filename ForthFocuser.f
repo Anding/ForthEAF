@@ -179,7 +179,7 @@ s" " $value eaf.str1
 		focuser_position (.) .>
 	while
 		150 ms
-	repeat cr
+	repeat
 ;
 
 : focus? ( -- pos)
