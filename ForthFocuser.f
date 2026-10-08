@@ -113,7 +113,7 @@ s" " $value eaf.str1
 : add-focuser ( FocuserID --)
 \ make a focuser available for application use
 \ 	connect the focuser and calibrate it
-    EAFGetNum 0= if s" no connected focusers" cr .>E cr abort then
+    EAFGetNum 0= if s" no connected focusers" .E> abort then
 	dup EAFOpen EAF.?abort
 	500 ms
 	EAFFocuserInfo ( ID buffer) EAFGetProperty EAF.?abort    
@@ -126,7 +126,7 @@ s" " $value eaf.str1
 	focuser.ID EAFSN EAFGetSerialNumber drop   
 	focuser_name $-> eaf.str1 s"  at position " $+> eaf.str1
 	focuser_position (.) $+> eaf.str1
-	cr eaf.str1 .> cr	
+	eaf.str1 .>
 ;
 
 : remove-focuser ( FocuserID --)
@@ -165,15 +165,16 @@ s" " $value eaf.str1
 : check-focuser ( --)
 \ report the current focuser state to the user
 	focuser.ID EAFFocuserInfo ( ID buffer) EAFGetProperty EAF.?abort	
-	CR 
-	." Focuser ID = " focuser.ID . 	
-	."  ; Name = " focuser_name type
-	." ; Position = " focuser_position .
-	." ; Moving = " focuser_moving .
-	." ; Backlash = " focuser_backlash .
-	." ; Reverse = " focuser_reverse .
-	." ; Maximum = " focuser_maxsteps .
-	." ; Temperature (C) = " focuser_temp .
+	s" Focuser" panel{
+	s" ID" focuser.ID (.) .field
+	s" Name" focuser_name .field
+	s" Position" focuser_position (.) .field
+	s" Moving" focuser_moving (.) .field
+	s" Backlash" focuser_backlash (.) .field
+	s" Reverse" focuser_reverse (.) .field
+	s" Maximum" focuser_maxsteps (.) .field
+	s" Temperature (C)" focuser_temp (.) .field
+	}panel
 ;
 
 : focus-at ( pos --)
@@ -182,13 +183,13 @@ s" " $value eaf.str1
 	begin
 		focuser_moving
 		100 ms
-		focuser_position (.) .>
+		focuser_position (.) ...>
 	while
 		150 ms
 	repeat
+	-...
 ;
 
 : focus? ( -- pos)
-    cr focuser_position (.) .> cr
-	cr
+    focuser_position (.) .>
 ;	

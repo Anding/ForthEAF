@@ -62,7 +62,7 @@ EAF_ID				BUFFER: EAFSN
 : EAF.?abort ( n --)
 	dup 
 	IF 
-		EAF.Error cr .>E cr
+		EAF.Error .E>
 		abort 
 	ELSE
 		drop	
