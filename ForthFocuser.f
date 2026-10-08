@@ -163,11 +163,17 @@ s" " $value eaf.str1
 \ user lexicon
 
 : check-focuser ( --)
-\ connect and report the current focuser to the user
+\ report the current focuser state to the user
 	focuser.ID EAFFocuserInfo ( ID buffer) EAFGetProperty EAF.?abort	
 	CR 
 	." Focuser ID = " focuser.ID . 	
 	."  ; Name = " focuser_name type
+	." ; Position = " focuser_position .
+	." ; Moving = " focuser_moving .
+	." ; Backlash = " focuser_backlash .
+	." ; Reverse = " focuser_reverse .
+	." ; Maximum = " focuser_maxsteps .
+	." ; Temperature (C) = " focuser_temp .
 ;
 
 : focus-at ( pos --)
