@@ -5,7 +5,7 @@ NEED forthbase
 NEED network
 NEED serial
 NEED ForthKMTronic
-NEED forth-map
+NEED ordered-maps
 
 include "%idir%\EAF_SDK.f"
 include "%idir%\EAF_SDK_extend.f"
@@ -29,8 +29,7 @@ scan-focusers
 0 use-focuser
 500 ms
 
-	map-strings
-	map CONSTANT focuser_FITSmap
+	allocate-map CONSTANT focuser_FITSmap
 	focuser_FITSmap add-focuserFITS
 	focuser_FITSmap .map
 

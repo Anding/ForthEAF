@@ -1,5 +1,6 @@
 \ Add FITS and XISF keywords to a map
 \ 	ASI version
+NEED ordered-maps
 
 
 \ FITS keywords supported by MaxImDL
