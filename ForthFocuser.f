@@ -1,6 +1,6 @@
 \ Forth lexicon for controlling a focuser
 \ 	ZWO EAF version
-\ 	interactive version - errors will report and abort
+\ 	ordinary errors report and return to the caller
 
 \ requires EAF_SDK.f
 \ requires EAF_SDK_extend.f
@@ -34,96 +34,83 @@ s" " $value eaf.str1
 	R> base !
 ;
 
-: focuser_moving { | moving handcontrol } ( -- flag) 
-	focuser.ID ADDR moving ADDR handcontrol 
-	EAFIsMoving case
-	    0 OF ADDR moving c@ ENDOF   \ some focusers return byte boolean type	
-	    5 OF -1 ENDOF               \ some focusers return the ismoving code
-        0 SWAP 
-    ENDCASE
+: focuser-motion? { | moving handcontrol -- moving? valid? }
+	0 -> moving 0 -> handcontrol
+	focuser.ID ADDR moving ADDR handcontrol EAFIsMoving
+	dup 5 = if drop -1 -1 exit then
+	?dup if EAF.?abort 0 0 exit then
+	ADDR moving c@ -1 \ Some SDK versions write a byte boolean.
+;
+
+: focuser_moving ( -- flag )
+	focuser-motion? drop
+;
+
+: (wait-focuser) ( -- ready? )
+\ synchronous hold until the focuser stops moving
+	begin
+	    100 ms
+		focuser-motion? 0= if drop 0 exit then
+	0= until
+	-1
 ;
 
 : wait-focuser ( --)
-\ synchronous hold until the focuser stops moving
-	begin
-	    100 ms                  \ default delay to allow the previous command to start
-		focuser_moving 0=
-	until
+	(wait-focuser) drop
 ;
 
-: focuser_position { | pos } ( -- pos) \ VFX locals for pass-by-reference 
-	focuser.ID ADDR pos EAFGetPosition EAF.?abort
-	pos
+: EAF.getter ( xt "name" --)
+	create ,
+	does> { | n -- n }
+		0 -> n
+		focuser.ID ADDR n rot @ execute
+		?dup if EAF.?abort 0 else n then
 ;
 
-: ->focuser_position ( pos --)
-	focuser.ID swap EAFMove EAF.?abort
-; 
-
-: focuser_backlash { | steps } ( -- steps ) \ VFX locals for pass-by-reference 
-	focuser.ID ADDR steps EAFGetBacklash EAF.?abort
-	steps
+: EAF.setter ( xt "name" --)
+	create ,
+	does> @ focuser.ID -rot execute EAF.?abort
 ;
 
-: ->focuser_backlash ( pos --)
-	focuser.ID swap EAFSetBacklash EAF.?abort
-; 
-
-: focuser_maxsteps { | steps } ( -- steps) \ VFX locals for pass-by-reference 
-	focuser.ID ADDR steps EAFGetMaxStep EAF.?abort
-	steps
-;
-
-: ->focuser_maxsteps ( steps -- ) \ VFX locals for pass-by-reference 
-	focuser.ID swap EAFSetMaxStep EAF.?abort
-;
-
-: focuser_reverse { | flag } ( -- flag) \ VFX locals for pass-by-reference 
-	focuser.ID ADDR flag EAFGetReverse EAF.?abort
-	ADDR flag c@	\ API appears to use the byte boolean type
-;
-
-: ->focuser_reverse ( flag --)
-	focuser.ID swap EAFSetReverse EAF.?abort
-;
+' EAFGetPosition EAF.getter focuser_position
+' EAFGetBacklash EAF.getter focuser_backlash
+' EAFGetMaxStep EAF.getter focuser_maxsteps
+' EAFGetReverse EAF.getter focuser_reverse
+' EAFGetBeep EAF.getter focuser_beeping
+' EAFStepRange EAF.getter focuser_steprange
+' EAFMove EAF.setter ->focuser_position
+' EAFSetBacklash EAF.setter ->focuser_backlash
+' EAFSetMaxStep EAF.setter ->focuser_maxsteps
+' EAFSetReverse EAF.setter ->focuser_reverse
+' EAFSetBeep EAF.setter ->focuser_beeping
 
 : focuser_temp { | temp } ( -- temp) \ VFX locals for pass-by-reference 
-	focuser.ID ADDR temp EAFGetTemp EAF.?abort
+	0 -> temp
+	focuser.ID ADDR temp EAFGetTemp ?dup if EAF.?abort 0 exit then
 	ADDR temp sf@ fr>s
 ;
 
-: focuser_stop
-	focuser.ID EAFStop
-;
-
-: focuser_beeping { | flag } ( -- pos) \ VFX locals for pass-by-reference 
-	focuser.ID ADDR flag EAFGetBeep EAF.?abort
-	ADDR flag c@	\ API appears to use the byte boolean type
-;
-
-: ->focuser_beeping ( flag --)
-	focuser.ID swap EAFSetBeep EAF.?abort
-;
-
-: focuser_steprange { | flag } ( -- steps) \ VFX locals for pass-by-reference 
-	focuser.ID ADDR flag EAFStepRange EAF.?abort
-	ADDR flag @	
+: focuser_stop ( -- ior)
+	focuser.ID EAFStop dup EAF.?abort
 ;
 
 : add-focuser ( FocuserID --)
 \ make a focuser available for application use
-\ 	connect the focuser and calibrate it
-    EAFGetNum 0= if s" no connected focusers" .E> abort then
-	dup EAFOpen EAF.?abort
+\ 	connect the focuser and read its properties
+    EAFGetNum 0= if drop s" no connected focusers" .E> exit then
+	dup EAFOpen ?dup if EAF.?abort drop exit then
 	500 ms
-	EAFFocuserInfo ( ID buffer) EAFGetProperty EAF.?abort    
+	dup EAFFocuserInfo EAFGetProperty ?dup if
+		EAF.?abort EAFClose EAF.?abort exit
+	then
+	drop
 ;
 
 : use-focuser ( FocuserID --)
 \ choose the focuser to be selected for operations - must be added first
 	-> focuser.ID
-	focuser.ID EAFFocuserInfo ( ID buffer) EAFGetProperty EAF.?abort
-	focuser.ID EAFSN EAFGetSerialNumber drop   
+	focuser.ID EAFFocuserInfo EAFGetProperty ?dup if EAF.?abort exit then
+	focuser.ID EAFSN EAFGetSerialNumber ?dup if EAF.?abort exit then
 	focuser_name $-> eaf.str1 s"  at position " $+> eaf.str1
 	focuser_position (.) $+> eaf.str1
 	eaf.str1 .>
@@ -131,8 +118,8 @@ s" " $value eaf.str1
 
 : remove-focuser ( FocuserID --)
 \ disconnect the focuser, it becomes unavailable to the application
-    wait-focuser
-	EAFClose drop
+    (wait-focuser) drop
+	EAFClose EAF.?abort
 ;
 
 : scan-focusers ( -- )
@@ -144,12 +131,17 @@ s" " $value eaf.str1
 		\ loop over each connected focuser
 		CR ." ID" tab ." Handle" tab tab  ." Focuser" CR
 		0 do
-			i EAFFocuserID ( index buffer) EAFGetID  EAF.?abort
+			0 EAFFocuserID !
+			i EAFFocuserID EAFGetID ?dup if EAF.?abort unloop exit then
 			EAFFocuserID @										( ID)
 			dup -> focuser.ID .
-			focuser.ID EAFOpen EAF.?abort
-			focuser.ID EAFFocuserInfo ( ID buffer) EAFGetProperty EAF.?abort
-			focuser.ID EAFSN EAFGetSerialNumber drop 			
+			focuser.ID EAFOpen ?dup if EAF.?abort unloop exit then
+			focuser.ID EAFFocuserInfo EAFGetProperty ?dup if
+				EAF.?abort focuser.ID EAFClose EAF.?abort unloop exit
+			then
+			focuser.ID EAFSN EAFGetSerialNumber ?dup if
+				EAF.?abort focuser.ID EAFClose EAF.?abort unloop exit
+			then
 			focuser.ID EAF.make-handle	2dup tab type 	( ID c-addr u)		
 			($constant)											( --)			
 			focuser_name tab type CR
@@ -164,7 +156,7 @@ s" " $value eaf.str1
 
 : check-focuser ( --)
 \ report the current focuser state to the user
-	focuser.ID EAFFocuserInfo ( ID buffer) EAFGetProperty EAF.?abort	
+	focuser.ID EAFFocuserInfo EAFGetProperty ?dup if EAF.?abort exit then
 	s" Focuser" panel{
 	s" ID" focuser.ID (.) .field
 	s" Name" focuser_name .field
@@ -178,16 +170,9 @@ s" " $value eaf.str1
 ;
 
 : focus-at ( pos --)
-	wait-focuser
-	->focuser_position cr
-	begin
-		focuser_moving
-		100 ms
-		focuser_position (.) ...>
-	while
-		150 ms
-	repeat
-	-...
+	(wait-focuser) 0= if drop exit then
+	focuser.ID swap EAFMove ?dup if EAF.?abort exit then
+	(wait-focuser) if focuser_position (.) .> then
 ;
 
 : focus? ( -- pos)

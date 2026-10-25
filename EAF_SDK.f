@@ -57,14 +57,10 @@ END-STRUCTURE
 variable EAFFocuserID
 EAF_FOCUSER_INFO	BUFFER: EAFFocuserInfo
 EAF_ID				BUFFER: EAFSN
+EAFFocuserInfo EAF_FOCUSER_INFO erase
+EAFSN EAF_ID erase
 
-\ do-or-die error handler
+\ Report SDK errors; keep the public name for existing callers.
 : EAF.?abort ( n --)
-	dup 
-	IF 
-		EAF.Error .E>
-		abort 
-	ELSE
-		drop	
-	THEN
+	?dup if EAF.Error cr type cr then
 ;
