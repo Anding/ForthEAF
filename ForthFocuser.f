@@ -170,9 +170,15 @@ s" " $value eaf.str1
 ;
 
 : focus-at ( pos --)
+\ Move to an absolute position and report the resulting position in steps.
 	(wait-focuser) 0= if drop exit then
 	focuser.ID swap EAFMove ?dup if EAF.?abort exit then
-	(wait-focuser) if focuser_position (.) .> then
+	(wait-focuser) if
+		s" Focuser position: " $-> eaf.str1
+		focuser_position (.) $+> eaf.str1
+		s"  steps" $+> eaf.str1
+		eaf.str1 .>
+	then
 ;
 
 : focus? ( -- pos)
