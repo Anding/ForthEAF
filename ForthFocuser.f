@@ -21,6 +21,11 @@
 
 s" " $value eaf.str1
 
+0 value focuser.default.reverse       \ Desired motor direction.
+0 value focuser.default.backlash      \ Rig supplies measured backlash.
+60000 value focuser.default.maxsteps  \ Standard EAF travel; rig must select its safe limit.
+0 value focuser.default.position      \ Rig supplies its normal initial focus.
+
 : focuser_name ( -- caddr u)
 \ return the name of the focuser
 	EAFFocuserInfo EAF_FOCUSER_NAME zcount
@@ -183,4 +188,12 @@ s" " $value eaf.str1
 
 : focus? ( -- pos)
     focuser_position (.) .>
-;	
+;
+
+: configure-focuser ( -- )
+\ Apply the rig's desired travel policy and initial focus; never cache readbacks.
+    focuser.default.reverse ->focuser_reverse
+    focuser.default.backlash ->focuser_backlash
+    focuser.default.maxsteps ->focuser_maxsteps
+    focuser.default.position focus-at
+;

@@ -1,4 +1,9 @@
 # ForthEAF
+
+`configure-focuser` applies desired `focuser.default.reverse`, `.backlash`,
+`.maxsteps` and `.position`. Hardware defaults are 0, 0, 60000 and 0;
+the environment must select safe rig-specific values before configuring.
+These are policy values, never hardware-state caches.
 Forth control of the ZWO electronic focuser controller
 
 Metadata uses ForthBase's `NEED ordered-maps` string maps.
