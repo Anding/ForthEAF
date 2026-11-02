@@ -1,5 +1,11 @@
 # ForthEAF
 
+`eaf.error.code` and `.timestamp` retain the latest nonzero SDK result until
+application acknowledgement; success does not clear them. Timestamps are
+ForthBase UTC Unix epoch seconds. `EAF.reopen?` accepts removed (4),
+error-state (6) and closed (9), not invalid values, moving or unsupported
+operations. Printers never reconnect; application idle policy owns recovery.
+
 `configure-focuser` applies desired `focuser.default.reverse`, `.backlash`,
 `.maxsteps` and `.position`. Hardware defaults are 0, 0, 60000 and 0;
 the environment must select safe rig-specific values before configuring.

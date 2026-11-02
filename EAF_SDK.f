@@ -1,6 +1,7 @@
 \ Forth words directly corresponding to the EAF SDK
 need ForthBase
 need ForthVT100
+NEED windows
                                             
 LIBRARY: EAF_focuser.dll  
 	
@@ -41,6 +42,8 @@ BEGIN-ENUMS EAF.Error ( n -- caddr u)
 	 +" FOCUSER GENERAL_ERROR" 
 	 +" FOCUSER NOT_SUPPORTED" 
 	 +" FOCUSER CLOSED" 
+     +" FOCUSER BATTER_INFO"
+     +" FOCUSER INVALID_LENGTH"
 END-ENUMS
 
 BEGIN-STRUCTURE EAF_FOCUSER_INFO
@@ -61,6 +64,25 @@ EAFFocuserInfo EAF_FOCUSER_INFO erase
 EAFSN EAF_ID erase
 
 \ Report SDK errors; keep the public name for existing callers.
+0 value eaf.error.code       \ Latest nonzero SDK result.
+0 value eaf.error.timestamp  \ UTC Unix epoch seconds.
+
+: EAF.reopen? ( code -- flag )
+\ Removed, hardware error state or closed; invalid values and moving are not faults.
+    dup 4 = over 6 = or swap 9 = or
+;
+
+: EAF.error! ( code -- )
+\ Latch nonzero SDK results, including the normal MOVING wait result.
+    ?dup if
+        -> eaf.error.code utc-epoch-seconds -> eaf.error.timestamp
+    then
+;
+
 : EAF.?abort ( n --)
-	?dup if EAF.Error cr type cr then
+\ Retain nonzero errors until service acknowledges them; report only.
+	?dup if
+        dup EAF.error!
+        EAF.Error cr type cr
+    then
 ;

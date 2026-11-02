@@ -42,7 +42,7 @@ s" " $value eaf.str1
 : focuser-motion? { | moving handcontrol -- moving? valid? }
 	0 -> moving 0 -> handcontrol
 	focuser.ID ADDR moving ADDR handcontrol EAFIsMoving
-	dup 5 = if drop -1 -1 exit then
+	dup 5 = if EAF.error! -1 -1 exit then
 	?dup if EAF.?abort 0 0 exit then
 	ADDR moving c@ -1 \ Some SDK versions write a byte boolean.
 ;
